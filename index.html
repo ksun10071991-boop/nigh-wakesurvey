@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户使用体验评价（睡眠质量问卷调查）</title>
+<style>
+  :root{
+    --bg:#f7f5f2;
+    --card:#ffffff;
+    --ink:#2b2620;
+    --ink-soft:#6b6258;
+    --accent:#a8643b;
+    --accent-soft:#f0e2d6;
+    --line:#e6e0d8;
+    --ctrl:#c97b3f;
+    --exp:#3f7a6b;
+    --warn:#c0463a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:60px;
+  }
+  header{
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+    padding:16px 20px;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  header h1{font-size:17px;margin:0 0 10px 0;font-weight:600;}
+  .tabs{display:flex;gap:8px;}
+  .tab-btn{
+    flex:1;padding:10px 8px;border:1px solid var(--line);background:#fff;
+    border-radius:10px;font-size:14px;color:var(--ink-soft);cursor:pointer;transition:all .15s;
+  }
+  .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  main{max-width:680px;margin:0 auto;padding:18px 16px 40px;}
+  .card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:16px;border:1px solid var(--line);}
+  .field-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .field{flex:1;min-width:140px;}
+  label.field-label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:6px;}
+  input[type=text]{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:15px;background:#fcfbf9;
+  }
+  .seg{display:flex;gap:6px;}
+  .seg button{
+    flex:1;padding:9px 6px;border:1px solid var(--line);background:#fcfbf9;
+    border-radius:10px;font-size:13px;cursor:pointer;color:var(--ink-soft);
+  }
+  .seg button.sel[data-val="对照组"]{background:var(--ctrl);color:#fff;border-color:var(--ctrl);}
+  .seg button.sel[data-val="实验组"]{background:var(--exp);color:#fff;border-color:var(--exp);}
+
+  .q-section-title{
+    font-size:13px;font-weight:700;color:var(--accent);
+    margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--line);
+  }
+  .q-section-title:first-child{border-top:none;padding-top:0;margin-top:0;}
+  .question{border-top:1px solid var(--line);padding:16px 0;}
+  .question:first-of-type{border-top:none;padding-top:4px;}
+  .q-title{font-size:14.5px;font-weight:600;margin-bottom:10px;line-height:1.5;}
+  .q-anchors{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;}
+
+  .scale{display:flex;gap:5px;flex-wrap:wrap;}
+  .scale button{
+    flex:1;min-width:28px;padding:9px 0;border:1px solid var(--line);background:#fcfbf9;
+    border-radius:8px;font-size:13.5px;cursor:pointer;color:var(--ink);
+  }
+  .scale.text-scale button{min-width:80px;font-size:12.5px;padding:9px 6px;}
+  .scale button.sel{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+
+  .choice-list{display:flex;flex-direction:column;gap:6px;}
+  .choice-row{display:flex;align-items:center;gap:8px;}
+  .choice-btn{
+    flex:1;padding:10px 12px;border:1px solid var(--line);background:#fcfbf9;
+    border-radius:10px;font-size:14px;cursor:pointer;color:var(--ink);text-align:left;
+  }
+  .choice-btn.sel{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+  .choice-note-input{
+    flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;
+  }
+
+  .multi-list{display:flex;flex-direction:column;gap:6px;}
+  .multi-row{display:flex;align-items:center;gap:8px;}
+  .multi-btn{
+    flex:1;padding:10px 12px;border:1px solid var(--line);background:#fcfbf9;
+    border-radius:10px;font-size:14px;cursor:pointer;color:var(--ink);text-align:left;
+  }
+  .multi-btn.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600;}
+  .multi-btn.sel::before{content:"✓ ";}
+
+  .ref-chip{
+    display:inline-block;margin-top:8px;padding:4px 10px;background:var(--accent-soft);
+    border-radius:20px;font-size:12px;color:var(--accent);
+  }
+  .ref-chip b{font-size:13px;}
+
+  .submit-btn{
+    width:100%;padding:14px;background:var(--accent);color:#fff;border:none;
+    border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:6px;
+  }
+  .submit-btn:disabled{background:#cfc7bd;cursor:not-allowed;}
+  .status-banner{padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;}
+  .status-banner.ok{background:#e7f2ed;color:#2e6b53;}
+  .status-banner.warn{background:#fbe9e7;color:var(--warn);}
+  .status-banner.info{background:var(--accent-soft);color:var(--accent);}
+
+  .lookup-row{display:flex;gap:8px;margin-bottom:16px;}
+  .lookup-row input{flex:1;}
+  .lookup-row button{
+    padding:10px 18px;background:var(--ink);color:#fff;border:none;border-radius:10px;
+    font-size:14px;cursor:pointer;white-space:nowrap;
+  }
+  table.compare{width:100%;border-collapse:collapse;font-size:13px;}
+  table.compare th, table.compare td{border:1px solid var(--line);padding:8px 6px;text-align:center;}
+  table.compare th{background:#fbf9f6;font-weight:600;font-size:12px;}
+  table.compare td.qname{text-align:left;font-size:12.5px;color:var(--ink-soft);}
+  table.compare td.flag-same{background:#fbe9e7;color:var(--warn);font-weight:700;}
+  table.compare td.flag-diff{background:#e7f2ed;}
+  .record-meta{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .edit-btn{
+    display:block;margin:6px auto 0;padding:4px 10px;background:var(--accent);color:#fff;
+    border:none;border-radius:8px;font-size:11.5px;cursor:pointer;
+  }
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--ink-soft);margin-top:10px;flex-wrap:wrap;}
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+  .export-btn{
+    width:100%;padding:12px;background:var(--exp);color:#fff;border:none;
+    border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:14px;
+  }
+  .empty-state{text-align:center;color:var(--ink-soft);padding:30px 10px;font-size:14px;}
+  .small-note{font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.5;}
+  .hidden{display:none !important;}
+  .save-indicator{font-size:12px;color:var(--ink-soft);text-align:center;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>用户使用体验评价（睡眠质量问卷调查）</h1>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="fill">填写问卷</button>
+    <button class="tab-btn" data-tab="review">研究人员核对</button>
+  </div>
+</header>
+
+<main>
+  <div id="syncBanner"></div>
+
+  <!-- ============ FILL TAB ============ -->
+  <div id="tab-fill">
+    <div class="card">
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">受试者编号</label>
+          <input type="text" id="subjectId" placeholder="例如 00AA" inputmode="text">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">实验组别</label>
+          <div class="seg" id="groupSeg">
+            <button data-val="对照组">对照组</button>
+            <button data-val="实验组">实验组</button>
+          </div>
+        </div>
+      </div>
+      <div id="refBanner"></div>
+    </div>
+
+    <div class="card" id="questionCard"></div>
+
+    <button class="submit-btn" id="submitBtn" disabled>请先填写编号与组别</button>
+    <div class="save-indicator" id="saveIndicator"></div>
+  </div>
+
+  <!-- ============ REVIEW TAB ============ -->
+  <div id="tab-review" class="hidden">
+    <div class="card">
+      <div class="lookup-row">
+        <input type="text" id="lookupId" placeholder="输入受试者编号，例如 00AA" inputmode="text">
+        <button id="lookupBtn">查看</button>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:#fbe9e7;border:1px solid var(--warn)"></span>两组分数完全相同（建议核实）</span>
+        <span><span class="dot" style="background:#e7f2ed;border:1px solid #2e6b53"></span>两组分数有差异（正常）</span>
+      </div>
+    </div>
+    <div id="reviewResult"></div>
+  </div>
+
+</main>
+
+<script>
+/* ===================== CONFIG ===================== */
+const JSONBIN_BASE = "https://api.jsonbin.io/v3/b";
+const SHARED_BIN_ID = "6a3f186dda38895dfe053488";
+const JSONBIN_ACCESS_KEY = "$2a$10$hqvznxXZxSTDOLaUsz6YUOtRZ6grhOIE7RndKywoB9nyatysS2qPW";
+
+/* ===================== QUESTIONS ===================== */
+const QUESTIONS = [
+  { id:"q4", type:"choice", section:"一、睡前状态评价", title:"入睡前的心情是", options:["烦躁","焦虑","平静，没啥感觉","轻松","愉悦"] },
+  { id:"q5", type:"num", section:null, title:"入睡前的平静程度", min:1, max:5, leftLabel:"完全不平静", rightLabel:"十分平静" },
+  { id:"q6", type:"num", section:null, title:"入睡前，身体肌肉的放松程度", min:1, max:5, leftLabel:"完全不放松", rightLabel:"非常放松" },
+
+  { id:"q7", type:"num", section:"二、睡眠过程体验评价", title:"进入睡眠状态的难易程度", min:1, max:5, leftLabel:"非常难", rightLabel:"很容易" },
+  { id:"q8", type:"num", section:null, title:"睡眠深浅程度如何", min:1, max:5, leftLabel:"很浅", rightLabel:"很深" },
+  { id:"q9", type:"num", section:null, title:"睡眠安宁程度如何", min:1, max:5, leftLabel:"非常不安", rightLabel:"非常安宁" },
+  { id:"q10", type:"num", section:null, title:"睡眠过程中，身体是否有压迫不适感", min:1, max:5, leftLabel:"非常强烈", rightLabel:"完全没有" },
+  { id:"q11", type:"num", section:null, title:"您感觉昨夜睡眠有做梦吗", min:1, max:5, leftLabel:"梦很多", rightLabel:"无梦" },
+  { id:"q12", type:"choice", section:null, title:"睡眠过程中，你是否因为身体热感不适（过冷/过热）而醒来", options:["没有醒来","1次","2次","3次及以上"] },
+
+  { id:"q13", type:"choice", section:"三、醒后状态评价", title:"今早是怎么醒的", options:["闹钟唤醒","多感官唤醒（灯光、音乐、体位）","不舒适","噪音","噩梦","自然醒","其他"], noteOn:["其他"] },
+  { id:"q14", type:"num", section:null, title:"请评估您当前的起床气（烦躁、情绪差）程度", min:0, max:10, leftLabel:"极度严重的起床气", rightLabel:"完全没有起床气" },
+  { id:"q15", type:"num", section:null, title:"请评估您当前的心情愉悦程度", min:0, max:10, leftLabel:"极度不愉悦", rightLabel:"极致愉悦" },
+  { id:"q16", type:"num", section:null, title:"请选择最符合你当前状态的分数（清醒度）", min:1, max:10, leftLabel:"极度困倦，无法保持清醒", rightLabel:"非常清醒" },
+  { id:"q17", type:"num", section:null, title:"今早醒来的容易程度", min:1, max:5, leftLabel:"非常难", rightLabel:"很容易" },
+  { id:"q18", type:"num", section:null, title:"醒来后精神状态感觉如何", min:1, max:5, leftLabel:"非常疲劳困倦", rightLabel:"非常有精神" },
+  { id:"q19", type:"num", section:null, title:"醒来后身体酸痛感", min:1, max:5, leftLabel:"非常明显", rightLabel:"完全没有" },
+
+  { id:"q20", type:"num", section:"四、整体睡眠评价", title:"对当晚睡眠的整体感受", min:1, max:5, leftLabel:"非常不舒服", rightLabel:"非常舒服" },
+  { id:"q21", type:"num", section:null, title:"对当晚睡眠质量的评价", min:1, max:5, leftLabel:"非常不满意", rightLabel:"非常满意" },
+  { id:"q22", type:"multi", section:null, title:"当晚影响睡眠质量的问题是", options:["监测设备连接","仪器设备噪音","助眠功能运行噪音(开启助眠功能时)","床垫/床品不适","室内温度","外界噪音","其他","无"] },
+  { id:"q23", type:"choice", section:null, title:"两晚睡眠中，您认为哪一晚的睡眠质量更好", options:["第一晚","第二晚","第一晚测试，无对比结果"] },
+
+  { id:"q24", type:"num", section:"五、产品功能评价", condition:"实验组", title:"您对多感官助眠功能时长的满意程度", min:1, max:10, leftLabel:"非常不满意", rightLabel:"非常满意" },
+  { id:"q25", type:"num", section:null, condition:"实验组", title:"助眠功能包含多段模式切换，模式切换时的体感变化是否会干扰您的睡眠状态", min:1, max:10, leftLabel:"非常不满意", rightLabel:"非常满意" },
+  { id:"q26", type:"num", section:null, condition:"实验组", title:"床助眠与唤醒功能产生的声音是否影响睡眠", min:1, max:10, leftLabel:"非常不满意", rightLabel:"非常满意" },
+  { id:"q27", type:"num", section:null, condition:"实验组", title:"您对多感官助眠功能（灯光/声音/触感）的整体满意度", min:1, max:10, leftLabel:"非常不满意", rightLabel:"非常满意" },
+  { id:"q28", type:"num", section:null, condition:"实验组", title:"对多感官唤醒模式（灯光/声音/触感）的喜爱度评价", min:1, max:10, leftLabel:"非常反感/惊吓", rightLabel:"非常喜欢" },
+  { id:"q29", type:"num", section:null, condition:"实验组", title:"与未开启助眠功能相比，开启后对您入睡的帮助程度", min:1, max:10, leftLabel:"非常不满意", rightLabel:"非常满意" },
+  { id:"q30", type:"num", section:null, condition:"实验组", title:"您是否愿意长期使用该床的助眠功能", min:1, max:10, leftLabel:"非常不满意", rightLabel:"非常满意" },
+  { id:"q31", type:"num", section:null, condition:"实验组", title:"您是否愿意长期使用该床的唤醒功能", min:1, max:10, leftLabel:"非常不满意", rightLabel:"非常满意" },
+];
+
+function visibleQuestions(group){
+  return QUESTIONS.filter(q => !q.condition || q.condition === group);
+}
+
+/* ===================== STORAGE LAYER (pending-sync queue) ===================== */
+let allRecords = [];
+let cloudAvailable = true;
+const PENDING_KEY = "sleep_quality_survey_pending_sync";
+
+function getPendingQueue(){
+  const raw = localStorage.getItem(PENDING_KEY);
+  return raw ? JSON.parse(raw) : [];
+}
+function setPendingQueue(queue){ localStorage.setItem(PENDING_KEY, JSON.stringify(queue)); }
+function addToPendingQueue(record){
+  const queue = getPendingQueue();
+  queue.push(record);
+  setPendingQueue(queue);
+}
+
+async function loadRecords(){
+  try{
+    const res = await fetch(`${JSONBIN_BASE}/${SHARED_BIN_ID}/latest`, {
+      headers: { "X-Access-Key": JSONBIN_ACCESS_KEY }
+    });
+    if(!res.ok) throw new Error("fetch failed: " + res.status);
+    const data = await res.json();
+    allRecords = (data.record && data.record.records) || [];
+    cloudAvailable = true;
+  }catch(e){
+    cloudAvailable = false;
+    console.warn("Cloud load failed, using last known cloud snapshot cached on this device.", e);
+    const local = localStorage.getItem("sleep_quality_survey_last_cloud_snapshot");
+    allRecords = local ? JSON.parse(local) : [];
+  }
+  return allRecords;
+}
+
+async function pushToCloud(recordsArray){
+  const res = await fetch(`${JSONBIN_BASE}/${SHARED_BIN_ID}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Access-Key": JSONBIN_ACCESS_KEY },
+    body: JSON.stringify({ records: recordsArray })
+  });
+  if(!res.ok) throw new Error("save failed: " + res.status);
+  localStorage.setItem("sleep_quality_survey_last_cloud_snapshot", JSON.stringify(recordsArray));
+}
+
+async function saveRecords(newOrEditedRecord){
+  try{
+    await pushToCloud(allRecords);
+    cloudAvailable = true;
+    return true;
+  }catch(e){
+    cloudAvailable = false;
+    console.warn("Cloud save failed; queuing this record for retry when network is back.", e);
+    if(newOrEditedRecord) addToPendingQueue(newOrEditedRecord);
+    return false;
+  }
+}
+
+async function retryPendingSync(){
+  const queue = getPendingQueue();
+  if(queue.length === 0) return { ok:true, synced:0 };
+  try{
+    const res = await fetch(`${JSONBIN_BASE}/${SHARED_BIN_ID}/latest`, {
+      headers: { "X-Access-Key": JSONBIN_ACCESS_KEY }
+    });
+    if(!res.ok) throw new Error("fetch failed: " + res.status);
+    const data = await res.json();
+    let latest = (data.record && data.record.records) || [];
+    queue.forEach(pending => {
+      const id = normId(pending.subjectId);
+      latest = latest.filter(r => !(normId(r.subjectId) === id && r.group === pending.group));
+      latest.push(pending);
+    });
+    await pushToCloud(latest);
+    allRecords = latest;
+    setPendingQueue([]);
+    cloudAvailable = true;
+    return { ok:true, synced:queue.length };
+  }catch(e){
+    console.warn("Retry sync failed, will try again later.", e);
+    cloudAvailable = false;
+    return { ok:false, synced:0 };
+  }
+}
+
+function updateSyncBanner(){
+  const queue = getPendingQueue();
+  const el = document.getElementById("syncBanner");
+  if(!el) return;
+  if(queue.length === 0){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="status-banner warn">⚠ 有 ${queue.length} 条记录尚未同步到云端（仅存在本设备）。
+    <button id="retrySyncBtn" style="margin-left:8px;padding:4px 10px;border:none;border-radius:8px;background:var(--warn);color:#fff;cursor:pointer;font-size:12px;">立即重试</button></div>`;
+  const btn = document.getElementById("retrySyncBtn");
+  if(btn){
+    btn.onclick = async () => {
+      btn.textContent = "同步中…";
+      const result = await retryPendingSync();
+      updateSyncBanner();
+      if(result.ok && result.synced > 0) alert(`成功同步 ${result.synced} 条记录到云端。`);
+      else if(!result.ok) alert("仍然连接失败，请检查网络后再试一次。");
+    };
+  }
+}
+window.addEventListener("online", async () => {
+  const result = await retryPendingSync();
+  updateSyncBanner();
+  if(result.ok && result.synced > 0) console.log(`Auto-synced ${result.synced} pending record(s) after network reconnect.`);
+});
+
+/* ===================== STATE ===================== */
+let state = { subjectId:"", group:null, answers:{}, notes:{} }; // notes keyed by `${qid}` for choice-with-note, or `${qid}_${optionIndex}` for multi
+
+function normId(id){ return (id || "").trim().toUpperCase(); }
+
+/* ===================== RENDER: QUESTIONS ===================== */
+function renderQuestions(){
+  const card = document.getElementById("questionCard");
+  card.innerHTML = "";
+  const qs = visibleQuestions(state.group);
+
+  qs.forEach(q => {
+    if(q.section){
+      const sec = document.createElement("div");
+      sec.className = "q-section-title";
+      sec.textContent = q.section;
+      card.appendChild(sec);
+    }
+    const wrap = document.createElement("div");
+    wrap.className = "question";
+
+    if(q.type === "num"){
+      wrap.innerHTML = `
+        <div class="q-title">${q.title}</div>
+        <div class="q-anchors"><span>${q.leftLabel}</span><span>${q.rightLabel}</span></div>
+        <div class="scale" id="scale-${q.id}"></div>
+        <div id="refchip-${q.id}"></div>
+      `;
+      card.appendChild(wrap);
+      const scaleDiv = wrap.querySelector(`#scale-${q.id}`);
+      for(let v = q.min; v <= q.max; v++){
+        const btn = document.createElement("button");
+        btn.textContent = v;
+        btn.dataset.val = v;
+        btn.onclick = () => {
+          state.answers[q.id] = v;
+          scaleDiv.querySelectorAll("button").forEach(b => b.classList.remove("sel"));
+          btn.classList.add("sel");
+          updateSubmitState();
+        };
+        scaleDiv.appendChild(btn);
+      }
+
+    } else if(q.type === "choice"){
+      wrap.innerHTML = `
+        <div class="q-title">${q.title}</div>
+        <div class="choice-list" id="choice-${q.id}"></div>
+        <div id="refchip-${q.id}"></div>
+      `;
+      card.appendChild(wrap);
+      const listDiv = wrap.querySelector(`#choice-${q.id}`);
+      q.options.forEach(opt => {
+        const row = document.createElement("div");
+        row.className = "choice-row";
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = opt;
+        btn.onclick = () => {
+          state.answers[q.id] = opt;
+          listDiv.querySelectorAll(".choice-btn").forEach(b => b.classList.remove("sel"));
+          btn.classList.add("sel");
+          // show/hide note input for options that need free-text
+          listDiv.querySelectorAll(".choice-note-input").forEach(inp => inp.classList.add("hidden"));
+          if(q.noteOn && q.noteOn.includes(opt)){
+            const noteInput = listDiv.querySelector(`[data-note-for="${opt}"]`);
+            if(noteInput) noteInput.classList.remove("hidden");
+          }
+          updateSubmitState();
+        };
+        row.appendChild(btn);
+        if(q.noteOn && q.noteOn.includes(opt)){
+          const noteInput = document.createElement("input");
+          noteInput.type = "text";
+          noteInput.className = "choice-note-input hidden";
+          noteInput.placeholder = "请填写备注";
+          noteInput.dataset.noteFor = opt;
+          noteInput.oninput = (e) => { state.notes[q.id] = e.target.value; };
+          row.appendChild(noteInput);
+        }
+        listDiv.appendChild(row);
+      });
+
+    } else if(q.type === "multi"){
+      wrap.innerHTML = `
+        <div class="q-title">${q.title}</div>
+        <div class="multi-list" id="multi-${q.id}"></div>
+        <div id="refchip-${q.id}"></div>
+      `;
+      card.appendChild(wrap);
+      const listDiv = wrap.querySelector(`#multi-${q.id}`);
+      state.answers[q.id] = state.answers[q.id] || [];
+      q.options.forEach((opt, idx) => {
+        const row = document.createElement("div");
+        row.className = "multi-row";
+        const btn = document.createElement("button");
+        btn.className = "multi-btn";
+        btn.textContent = opt;
+        btn.onclick = () => {
+          const arr = state.answers[q.id];
+          const pos = arr.indexOf(opt);
+          if(pos === -1){ arr.push(opt); btn.classList.add("sel"); }
+          else { arr.splice(pos,1); btn.classList.remove("sel"); noteInput.classList.add("hidden"); }
+          if(btn.classList.contains("sel")) noteInput.classList.remove("hidden");
+          updateSubmitState();
+        };
+        const noteInput = document.createElement("input");
+        noteInput.type = "text";
+        noteInput.className = "choice-note-input hidden";
+        noteInput.placeholder = "备注（可选）";
+        noteInput.oninput = (e) => { state.notes[`${q.id}_${idx}`] = e.target.value; };
+        row.appendChild(btn);
+        row.appendChild(noteInput);
+        listDiv.appendChild(row);
+      });
+    }
+  });
+}
+
+function answerDisplay(q, val){
+  if(val === undefined) return undefined;
+  if(q.type === "multi") return Array.isArray(val) ? val.join("、") : val;
+  return val;
+}
+
+/* ===================== REFERENCE (bidirectional, by group) ===================== */
+function updateReferenceDisplay(){
+  const refRecord = findReferenceRecord();
+  const banner = document.getElementById("refBanner");
+
+  visibleQuestions(state.group).forEach(q => {
+    const chipDiv = document.getElementById(`refchip-${q.id}`);
+    if(!chipDiv) return;
+    if(refRecord && refRecord.answers[q.id] !== undefined){
+      chipDiv.innerHTML = `<span class="ref-chip">${refRecord.group}你填的是 <b>${answerDisplay(q, refRecord.answers[q.id])}</b></span>`;
+    } else {
+      chipDiv.innerHTML = "";
+    }
+  });
+
+  if(state.subjectId && state.group){
+    if(refRecord){
+      banner.innerHTML = `<div class="status-banner ok">受试者 ${state.subjectId} 在「${refRecord.group}」下已有记录，填写每题时可参考。</div>`;
+    } else {
+      banner.innerHTML = `<div class="status-banner info">受试者 ${state.subjectId} 目前还没有其他组别的记录 —— 这应该是该受试者的第一次填写。</div>`;
+    }
+  } else {
+    banner.innerHTML = "";
+  }
+}
+
+function findReferenceRecord(){
+  if(!state.subjectId || !state.group) return null;
+  const id = normId(state.subjectId);
+  return allRecords.find(r => normId(r.subjectId) === id && r.group !== state.group) || null;
+}
+function findRecord(subjectId, group){
+  const id = normId(subjectId);
+  return allRecords.find(r => normId(r.subjectId) === id && r.group === group) || null;
+}
+
+/* ===================== UI: TOP FIELDS ===================== */
+document.getElementById("subjectId").addEventListener("input", (e) => {
+  state.subjectId = e.target.value.trim();
+  updateReferenceDisplay();
+  updateSubmitState();
+});
+
+document.querySelectorAll("#groupSeg button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("#groupSeg button").forEach(b => b.classList.remove("sel"));
+    btn.classList.add("sel");
+    state.group = btn.dataset.val;
+    state.answers = {};
+    state.notes = {};
+    renderQuestions();
+    updateReferenceDisplay();
+    updateSubmitState();
+  };
+});
+
+function isAnswered(q){
+  const v = state.answers[q.id];
+  if(q.type === "multi") return Array.isArray(v) && v.length > 0;
+  return v !== undefined && v !== "";
+}
+
+function updateSubmitState(){
+  const btn = document.getElementById("submitBtn");
+  const qs = visibleQuestions(state.group);
+  const allAnswered = qs.every(isAnswered);
+  const headerOk = state.subjectId && state.group;
+  if(headerOk && allAnswered){
+    btn.disabled = false;
+    btn.textContent = "提交问卷";
+  } else if(!headerOk){
+    btn.disabled = true;
+    btn.textContent = "请先填写编号与组别";
+  } else {
+    const remaining = qs.filter(q => !isAnswered(q)).length;
+    btn.disabled = true;
+    btn.textContent = `还有 ${remaining} 题未填写`;
+  }
+}
+
+/* ===================== SUBMIT ===================== */
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  const existing = findRecord(state.subjectId, state.group);
+  if(existing && !confirm(`受试者 ${state.subjectId}（${state.group}）已有记录，是否覆盖？`)){
+    return;
+  }
+
+  const id = normId(state.subjectId);
+  const record = {
+    subjectId: state.subjectId.trim(),
+    group: state.group,
+    answers: { ...state.answers },
+    notes: { ...state.notes },
+    submittedAt: new Date().toISOString()
+  };
+
+  if(existing){
+    allRecords = allRecords.filter(r => !(normId(r.subjectId) === id && r.group === state.group));
+  }
+  allRecords.push(record);
+
+  const indicator = document.getElementById("saveIndicator");
+  indicator.textContent = "正在保存…";
+  const cloudOk = await saveRecords(record);
+  indicator.textContent = cloudOk
+    ? "✓ 已提交并同步到云端"
+    : "✓ 已提交（仅保存在本设备，已加入待同步队列，网络恢复后会自动重试）";
+  updateSyncBanner();
+
+  state.subjectId = "";
+  state.answers = {};
+  state.notes = {};
+  document.getElementById("subjectId").value = "";
+  renderQuestions();
+  updateReferenceDisplay();
+  updateSubmitState();
+});
+
+/* ===================== TABS ===================== */
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.onclick = async () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const tab = btn.dataset.tab;
+    document.getElementById("tab-fill").classList.toggle("hidden", tab !== "fill");
+    document.getElementById("tab-review").classList.toggle("hidden", tab !== "review");
+    if(tab === "review"){
+      await loadRecords();
+      renderReview();
+    }
+  };
+});
+
+/* ===================== REVIEW TAB ===================== */
+document.getElementById("lookupBtn").addEventListener("click", async () => {
+  await loadRecords();
+  renderReview();
+});
+
+function renderReview(){
+  const id = document.getElementById("lookupId").value.trim();
+  const resultDiv = document.getElementById("reviewResult");
+  if(!id){
+    resultDiv.innerHTML = `<div class="empty-state">请输入受试者编号查看对比结果</div>`;
+    return;
+  }
+  const normLookup = normId(id);
+  const records = allRecords.filter(r => normId(r.subjectId) === normLookup);
+  if(records.length === 0){
+    resultDiv.innerHTML = `<div class="empty-state">未找到受试者 ${id} 的任何记录</div>`;
+    return;
+  }
+  const ctrl = records.find(r => r.group === "对照组");
+  const exp = records.find(r => r.group === "实验组");
+  const cols = [ctrl, exp].filter(Boolean);
+
+  // Build the row list: shared questions for everyone, plus 实验组-only questions only shown if at least one column is 实验组
+  const showExpOnly = cols.some(c => c.group === "实验组");
+  const rowsToShow = QUESTIONS.filter(q => !q.condition || showExpOnly);
+
+  let html = `<div class="card"><table class="compare"><thead><tr><th class="qname">题目</th>`;
+  cols.forEach((c, idx) => {
+    html += `<th>${c.group}<div class="record-meta">${new Date(c.submittedAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div><button class="edit-btn" data-edit-idx="${idx}">✎ 修改</button></th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  const hasBoth = cols.length === 2;
+  rowsToShow.forEach(q => {
+    html += `<tr><td class="qname">${q.title}</td>`;
+    cols.forEach((c) => {
+      const v = c.answers[q.id];
+      const isConditionalAndMissing = q.condition && c.group !== q.condition;
+      let cls = "";
+      if(hasBoth && !isConditionalAndMissing){
+        const other = (c.group === "对照组" ? exp : ctrl);
+        const otherV = other ? other.answers[q.id] : undefined;
+        if(other && !(q.condition && other.group !== q.condition)){
+          cls = (JSON.stringify(v) === JSON.stringify(otherV)) ? "flag-same" : "flag-diff";
+        }
+      }
+      const display = isConditionalAndMissing ? "（不适用）" : (answerDisplay(q, v) ?? "—");
+      html += `<td class="${cls}">${display}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+  html += `<div class="small-note">标红表示该受试者「对照组」与「实验组」填了完全相同的分数 —— 建议核对访谈记录是否一致。「五、产品功能评价」题仅实验组适用。</div>`;
+  resultDiv.innerHTML = html;
+
+  resultDiv.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.onclick = () => {
+      const idx = parseInt(btn.dataset.editIdx, 10);
+      loadRecordForEditing(cols[idx]);
+    };
+  });
+}
+
+function loadRecordForEditing(record){
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === "fill"));
+  document.getElementById("tab-fill").classList.remove("hidden");
+  document.getElementById("tab-review").classList.add("hidden");
+
+  state.subjectId = record.subjectId;
+  state.group = record.group;
+  state.answers = JSON.parse(JSON.stringify(record.answers));
+  state.notes = JSON.parse(JSON.stringify(record.notes || {}));
+
+  document.getElementById("subjectId").value = record.subjectId;
+  document.querySelectorAll("#groupSeg button").forEach(b => b.classList.toggle("sel", b.dataset.val === record.group));
+
+  renderQuestions();
+
+  // re-apply selections visually for each question type
+  visibleQuestions(state.group).forEach(q => {
+    const val = record.answers[q.id];
+    if(val === undefined) return;
+    if(q.type === "num"){
+      const scaleDiv = document.getElementById(`scale-${q.id}`);
+      if(scaleDiv) scaleDiv.querySelectorAll("button").forEach(b => b.classList.toggle("sel", parseInt(b.dataset.val,10) === val));
+    } else if(q.type === "choice"){
+      const listDiv = document.getElementById(`choice-${q.id}`);
+      if(listDiv){
+        listDiv.querySelectorAll(".choice-btn").forEach(b => b.classList.toggle("sel", b.textContent === val));
+        if(q.noteOn && q.noteOn.includes(val)){
+          const noteInput = listDiv.querySelector(`[data-note-for="${val}"]`);
+          if(noteInput){
+            noteInput.classList.remove("hidden");
+            noteInput.value = record.notes && record.notes[q.id] ? record.notes[q.id] : "";
+          }
+        }
+      }
+    } else if(q.type === "multi"){
+      const listDiv = document.getElementById(`multi-${q.id}`);
+      if(listDiv && Array.isArray(val)){
+        const buttons = listDiv.querySelectorAll(".multi-btn");
+        const inputs = listDiv.querySelectorAll(".choice-note-input");
+        buttons.forEach((b, idx) => {
+          if(val.includes(b.textContent)){
+            b.classList.add("sel");
+            inputs[idx].classList.remove("hidden");
+            inputs[idx].value = record.notes && record.notes[`${q.id}_${idx}`] ? record.notes[`${q.id}_${idx}`] : "";
+          }
+        });
+      }
+    }
+  });
+
+  updateReferenceDisplay();
+  updateSubmitState();
+
+  const banner = document.getElementById("refBanner");
+  banner.innerHTML = `<div class="status-banner info">正在修改受试者 ${record.subjectId}（${record.group}）已提交的记录，改完后点"提交问卷"会覆盖原记录。</div>` + banner.innerHTML;
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ===================== EXPORT CSV ===================== */
+function buildCsv(){
+  const headers = ["受试者编号","组别","提交时间", ...QUESTIONS.map(q => q.title), "备注"];
+  const rows = allRecords
+    .slice()
+    .sort((a,b) => a.subjectId.localeCompare(b.subjectId) || a.group.localeCompare(b.group))
+    .map(r => {
+      const noteParts = [];
+      Object.keys(r.notes || {}).forEach(k => { if(r.notes[k]) noteParts.push(`${k}:${r.notes[k]}`); });
+      return [
+        r.subjectId, r.group, r.submittedAt,
+        ...QUESTIONS.map(q => {
+          if(q.condition && r.group !== q.condition) return "不适用";
+          return answerDisplay(q, r.answers[q.id]) ?? "";
+        }),
+        noteParts.join("; ")
+      ];
+    });
+  const escape = (val, isId) => {
+    const s = String(val ?? "");
+    if(isId) return `="${s.replace(/"/g,'""')}"`;
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+  const csvLines = [headers, ...rows].map((row, rowIdx) =>
+    row.map((cell, colIdx) => escape(cell, rowIdx > 0 && colIdx === 0)).join(",")
+  );
+  return "\uFEFF" + csvLines.join("\r\n");
+}
+
+function downloadCsv(){
+  const csv = buildCsv();
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `睡眠质量问卷_全部数据_${ts}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+(function addExportButton(){
+  const btn = document.createElement("button");
+  btn.className = "export-btn";
+  btn.textContent = "⬇ 导出全部受试者数据（CSV / Excel可打开）";
+  btn.onclick = async () => {
+    await loadRecords();
+    if(allRecords.length === 0){ alert("目前还没有任何已提交的数据。"); return; }
+    downloadCsv();
+  };
+  document.getElementById("tab-review").querySelector(".card").appendChild(btn);
+})();
+
+/* ===================== INIT ===================== */
+(async function init(){
+  renderQuestions();
+  updateSubmitState();
+  await loadRecords();
+  await retryPendingSync();
+  updateSyncBanner();
+})();
+
+</script>
+</body>
+</html>
