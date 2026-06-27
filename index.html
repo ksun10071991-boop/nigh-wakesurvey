@@ -735,6 +735,10 @@ function loadRecordForEditing(record){
 }
 
 /* ===================== EXPORT CSV ===================== */
+function toLocalTime(isoString){
+  const d = new Date(isoString);
+  return d.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
+}
 function buildCsv(){
   const headers = ["受试者编号","组别","提交时间", ...QUESTIONS.map(q => q.title), "备注"];
   const rows = allRecords
@@ -744,7 +748,7 @@ function buildCsv(){
       const noteParts = [];
       Object.keys(r.notes || {}).forEach(k => { if(r.notes[k]) noteParts.push(`${k}:${r.notes[k]}`); });
       return [
-        r.subjectId, r.group, r.submittedAt,
+       r.subjectId, r.group, toLocalTime(r.submittedAt),
         ...QUESTIONS.map(q => {
           if(q.condition && r.group !== q.condition) return "不适用";
           return answerDisplay(q, r.answers[q.id]) ?? "";
